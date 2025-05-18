@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Обнимашки</title>
+  <style>
+    body {   font-family: Arial, sans-serif;
+  background: linear-gradient(135deg, #221430, #432455);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin: 0; }
+    button {
+      background-color: #83169e;
+      color: white;
+      padding: 15px 30px;
+      font-size: 18px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow: 0 0 10px #5006a5;
+    }
+    button:hover {
+      background-color: #3e0381;
+    }
+    img{
+      margin: 20px;
+      align-content: center;
+    }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.2/socket.io.min.js"></script>
+     <link rel="icon" type="image/png" href="https://media.tenor.com/wSJZSQqIHhUAAAAM/love-cats-cat.gif">
+</head>
+<body>
+  <h1>Отправь обнимашку </h1>
+  <button id="hugBtn">Обнять</button>
+  <img src="https://media.tenor.com/wSJZSQqIHhUAAAAM/love-cats-cat.gif" alt="" width="200" height="200"   >
+  <script>
+    const socket = io();
+
+    document.getElementById('hugBtn').addEventListener('click', () => {
+      socket.emit('send_hug');
+    });
+
+    socket.on('receive_hug', () => {
+      if (Notification.permission === 'granted') {
+        new Notification("Тебя только что обняли :D");
+      } else {
+        alert("Тебя только что обняли :D");
+      }
+
+     
+      if ("vibrate" in navigator) {
+        navigator.vibrate([300, 100, 300]);
+      }
+    });
+
+    
+    if (Notification.permission !== 'granted') {
+      Notification.requestPermission();
+    }
+  </script>
+</body>
+</html>

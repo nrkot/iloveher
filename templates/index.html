@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>2 часть сайта</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            background: linear-gradient(135deg, #221430, #432455);
+            text-align: center; 
+            height: 100vh;
+        }
+        h1, p, #status { color: rgb(168, 168, 168); margin: 10px; }
+        .button { background-color: #8747ff; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin: 5px;}
+        .button:hover { background-color: #9900ff; }
+        #status { font-size: 18px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>эт вторая часть сайта </h1>
+    <p>выбери что нибудь:</p>
+
+    <div>
+        <a href="/music"><button class="button">слушать музыку вместе</button></a>
+        <a href="/draw"><button class="button">рисовать вместе</button></a>
+        <a href="/hug"><button class="button">можно обнять</button></a>
+    </div>
+
+    <div id="status">Статус: Ожидание...</div>
+
+    <script>
+        socket.on('status', (message) => {
+            document.getElementById('status').textContent = `Статус: ${message}`;
+        });
+
+    </script>
+</body>
+</html>

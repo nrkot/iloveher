@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Draw Together</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif; 
+            background: linear-gradient(135deg, #221430, #432455);
+            text-align: center; 
+            height: 100vh;
+            color: white;
+        }
+        canvas {
+            border: 2px solid #000000;
+            box-shadow: 2px 2px 0px 0px rgba(204, 204, 204, 0.418);
+            display: block;
+            margin: 20px auto;
+            background: #fff;
+            cursor: crosshair;
+        }
+        .controls {
+            margin: 10px;
+        }
+        .controls label {
+            margin-right: 10px;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.2/socket.io.min.js"></script>
+</head>
+<body>
+    <h1>🎨 Рисование вдвоём</h1>
+
+    <div class="controls">
+        <label>Цвет: <input type="color" id="colorPicker" value="#000000"></label>
+        <label>Размер кисти: <input type="range" id="brushSize" min="1" max="20" value="3"></label>
+        <button onclick="clearCanvas()">Очистить</button>
+    </div>
+
+    <canvas id="canvas" width="600" height="400"></canvas>
+
+    <script>
+        const socket = io();
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const colorPicker = document.getElementById('colorPicker');
+        const brushSize = document.getElementById('brushSize');
+        let drawing = false;
+
+        canvas.addEventListener('mousedown', () => drawing = true);
+        canvas.addEventListener('mouseup', () => drawing = false);
+        canvas.addEventListener('mouseout', () => drawing = false);
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (!drawing) return;
+            const x = e.offsetX;
+            const y = e.offsetY;
+            const color = colorPicker.value;
+            const size = brushSize.value;
+            draw(x, y, color, size);
+            socket.emit('draw_data', { x, y, color, size });
+        });
+
+        function draw(x, y, color, size) {
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(x, y, size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        socket.on('draw_data', (data) => {
+            draw(data.x, data.y, data.color, data.size);
+        });
+
+        // Очистка холста
+        function clearCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            socket.emit('clear_canvas');
+        }
+
+        socket.on('clear_canvas', () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        });
+    </script>
+</body>
+</html>

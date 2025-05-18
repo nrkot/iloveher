@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>🎶 Listen Together</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.2/socket.io.min.js"></script>
+    <style>
+        body {
+            font-family: sans-serif;
+            background: #1e1e2f;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .player {
+            background: #2e2e40;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(255, 0, 255, 0.1);
+            text-align: center;
+        }
+        audio {
+            width: 100%;
+        }
+        button {
+            margin-top: 15px;
+            padding: 10px 20px;
+            border: none;
+            background: #ff55bb;
+            color: white;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="player">
+        <h2>🎵 Слушаем вместе 🎵</h2>
+        <select id="songSelect">
+            <option value="static/ЩЕНКИ - Грязь.mp3">щенки-грязь</option>
+            <option value="static/Пошлая Молли - Буду твоим песиком.mp3">ПМ - буду твоим песиком</option>
+            <option value="static/Anacondaz & кис-кис - Сядь мне на лицо.mp3">сядь мне на лицо</option>
+            <option value="static/Anacondaz & кис-кис - Сядь мне на лицо.mp3">сядь мне на лицо</option>
+            <option value="static/Anacondaz & кис-кис - Сядь мне на лицо.mp3">сядь мне на лицо</option>
+            <option value="static/Anacondaz & кис-кис - Сядь мне на лицо.mp3">сядь мне на лицо</option>
+            <option value="static/Anacondaz & кис-кис - Сядь мне на лицо.mp3">сядь мне на лицо</option>
+            <option value="static/Anacondaz & кис-кис - Сядь мне на лицо.mp3">сядь мне на лицо</option>
+            <option value="static/Anacondaz & кис-кис - Сядь мне на лицо.mp3">сядь мне на лицо</option>
+            <option value="static/Anacondaz & кис-кис - Сядь мне на лицо.mp3">сядь мне на лицо</option>
+            <option value="static/Anacondaz & кис-кис - Сядь мне на лицо.mp3">сядь мне на лицо</option>
+            <option value="static/Anacondaz & кис-кис - Сядь мне на лицо.mp3">сядь мне на лицо</option>
+            <option value="static/Anacondaz & кис-кис - Сядь мне на лицо.mp3">сядь мне на лицо</option>
+            <option value="static/Anacondaz & кис-кис - Сядь мне на лицо.mp3">сядь мне на лицо</option>
+            <option value="static/Anacondaz & кис-кис - Сядь мне на лицо.mp3">сядь мне на лицо</option>
+        </select><br><br>
+        <audio id="audio" controls>
+            <source src="static/ЩЕНКИ - Грязь.mp3" type="audio/mp3">
+        </audio><br>
+        <button id="playBtn">▶️ Play</button>
+        <button id="pauseBtn">⏸ Pause</button>
+    </div>
+
+    <script>
+        const socket = io();
+        const audio = document.getElementById("audio");
+        const playBtn = document.getElementById("playBtn");
+        const pauseBtn = document.getElementById("pauseBtn");
+        const songSelect = document.getElementById("songSelect");
+
+        // 🔊 Выбор песни девушкой
+        songSelect.onchange = () => {
+            const selected = songSelect.value;
+            socket.emit('change_song', selected);
+            audio.src = selected;
+            audio.load();
+            audio.play();
+        };
+
+        // ▶️ Play
+        playBtn.onclick = () => {
+            socket.emit('play');
+            audio.play();
+        };
+
+        // ⏸ Pause
+        pauseBtn.onclick = () => {
+            socket.emit('pause');
+            audio.pause();
+        };
+
+        // Синхронизация времени
+        audio.ontimeupdate = () => {
+            socket.emit('sync', { time: audio.currentTime });
+        };
+
+        // Получение команды от сервера
+        socket.on('play', () => audio.play());
+        socket.on('pause', () => audio.pause());
+
+        socket.on('sync', data => {
+            if (Math.abs(audio.currentTime - data.time) > 1) {
+                audio.currentTime = data.time;
+            }
+        });
+
+        // 📡 Когда другой пользователь выбирает песню
+        socket.on('change_song', songPath => {
+            audio.src = songPath;
+            audio.load();
+            audio.play();
+            songSelect.value = songPath; // Обновление выбора
+        });
+    </script>
+    </script>
+</body>
+</html>
