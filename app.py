@@ -56,7 +56,6 @@ def handle_chat_message(msg):
 def handle_hug():
     emit('receive_hug', broadcast=True)
 if __name__ == '__main__':
-    socketio.run(app)
-
+    socketio.run(app, host="0.0.0.0", port=5000)
 
 
