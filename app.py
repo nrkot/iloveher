@@ -1,12 +1,13 @@
 from flask import Flask, render_template 
 from flask_socketio import SocketIO, emit
-
+import os
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app, async_mode='eventlet')
 
 online_users = set()
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -22,7 +23,6 @@ def draw():
 @app.route('/hug')
 def games():
     return render_template('hug.html')
-
 
 @socketio.on('play')
 def handle_play():
@@ -57,6 +57,5 @@ def handle_hug():
     emit('receive_hug', broadcast=True)
     
 if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port=5000)
-
-
+    port = int(os.environ.get('PORT', 5000))
+    socketio.run(app, host='0.0.0.0', port=port)
