@@ -1,10 +1,10 @@
-from flask import Flask, render_template , request
-from flask_socketio import SocketIO, emit, join_room, leave_room
+from flask import Flask, render_template 
+from flask_socketio import SocketIO, emit
 
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
-socketio = SocketIO(app)
+socketio = SocketIO(app, async_mode='eventlet')
 
 online_users = set()
 @app.route('/')
@@ -55,7 +55,8 @@ def handle_chat_message(msg):
 @socketio.on('send_hug')
 def handle_hug():
     emit('receive_hug', broadcast=True)
+    
 if __name__ == '__main__':
-    socketio.run(app, host="0.0.0.0", port=5000)
+    socketio.run(app, host='0.0.0.0', port=5000)
 
 
