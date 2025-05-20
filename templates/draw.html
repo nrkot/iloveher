@@ -39,48 +39,80 @@
 
     <canvas id="canvas" width="600" height="400"></canvas>
 
-    <script>
-        const socket = io();
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
-        const colorPicker = document.getElementById('colorPicker');
-        const brushSize = document.getElementById('brushSize');
-        let drawing = false;
+<script>
+    const socket = io();
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const colorPicker = document.getElementById('colorPicker');
+    const brushSize = document.getElementById('brushSize');
+    let drawing = false;
 
-        canvas.addEventListener('mousedown', () => drawing = true);
-        canvas.addEventListener('mouseup', () => drawing = false);
-        canvas.addEventListener('mouseout', () => drawing = false);
-
-        canvas.addEventListener('mousemove', (e) => {
-            if (!drawing) return;
-            const x = e.offsetX;
-            const y = e.offsetY;
-            const color = colorPicker.value;
-            const size = brushSize.value;
-            draw(x, y, color, size);
-            socket.emit('draw_data', { x, y, color, size });
-        });
-
-        function draw(x, y, color, size) {
-            ctx.fillStyle = color;
-            ctx.beginPath();
-            ctx.arc(x, y, size, 0, Math.PI * 2);
-            ctx.fill();
+    function getCoords(e) {
+        if (e.touches) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: e.touches[0].clientX - rect.left,
+                y: e.touches[0].clientY - rect.top
+            };
+        } else {
+            return {
+                x: e.offsetX,
+                y: e.offsetY
+            };
         }
+    }
 
-        socket.on('draw_data', (data) => {
-            draw(data.x, data.y, data.color, data.size);
-        });
+    function startDraw(e) {
+        drawing = true;
+        drawFromEvent(e);
+    }
 
-        // Очистка холста
-        function clearCanvas() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            socket.emit('clear_canvas');
-        }
+    function endDraw() {
+        drawing = false;
+    }
 
-        socket.on('clear_canvas', () => {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-        });
-    </script>
+    function drawFromEvent(e) {
+        if (!drawing) return;
+        e.preventDefault(); // чтобы страница не прокручивалась при касании
+        const { x, y } = getCoords(e);
+        const color = colorPicker.value;
+        const size = brushSize.value;
+        draw(x, y, color, size);
+        socket.emit('draw_data', { x, y, color, size });
+    }
+
+    function draw(x, y, color, size) {
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(x, y, size, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    // Поддержка мыши
+    canvas.addEventListener('mousedown', startDraw);
+    canvas.addEventListener('mouseup', endDraw);
+    canvas.addEventListener('mouseout', endDraw);
+    canvas.addEventListener('mousemove', drawFromEvent);
+
+    // Поддержка касаний
+    canvas.addEventListener('touchstart', startDraw);
+    canvas.addEventListener('touchend', endDraw);
+    canvas.addEventListener('touchcancel', endDraw);
+    canvas.addEventListener('touchmove', drawFromEvent);
+
+    // Очистка холста
+    function clearCanvas() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        socket.emit('clear_canvas');
+    }
+
+    socket.on('draw_data', (data) => {
+        draw(data.x, data.y, data.color, data.size);
+    });
+
+    socket.on('clear_canvas', () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    });
+</script>
 </body>
 </html>
