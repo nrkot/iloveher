@@ -47,6 +47,9 @@ def handle_sync_time(time):
 @socketio.on('draw_data')
 def handle_draw(data):
     emit('draw_data', data, broadcast=True)
+@socketio.on('clear_canvas')
+def handle_clear():
+    emit('clear_canvas', broadcast=True, include_self=False)
 
 @socketio.on('chat_message')
 def handle_chat_message(msg):
