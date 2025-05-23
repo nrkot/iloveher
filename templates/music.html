@@ -4,42 +4,66 @@
     <meta charset="UTF-8">
     <title>🎶 Listen Together</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.2/socket.io.min.js"></script>
-    <link rel="icon" type="image/png" href="static\main-logo.png">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <link rel="icon" type="image/png" href="static/main-logo.png">
     <style>
         body {
-            font-family: sans-serif;
-            background: #1e1e2f;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(to right, #0f0c29, #302b63, #24243e);
             color: white;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
+            margin: 0;
+            overflow: hidden;
         }
         .player {
-            background: #2e2e40;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 0 20px rgba(255, 0, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 0 30px rgba(255, 0, 255, 0.2);
             text-align: center;
+            backdrop-filter: blur(10px);
+            position: relative;
+        }
+        .player h2 {
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+        select, audio, button {
+            width: 100%;
+            margin: 10px 0;
+        }
+        select {
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            background: #ffffff10;
+            color: white;
         }
         audio {
-            width: 100%;
+            background: #ffffff10;
+            border-radius: 10px;
         }
         button {
-            margin-top: 15px;
-            padding: 10px 20px;
+            padding: 10px;
             border: none;
             background: #ff55bb;
             color: white;
             font-weight: bold;
             border-radius: 8px;
             cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #ff33aa;
         }
     </style>
 </head>
 <body>
-    <div class="player">
-        <h2>🎵 Слушаем вместе 🎵</h2>
+<div class="player" id="playerBox">
+    <h2>🎵 Слушаем вместе 🎵</h2>
 <select id="songSelect">
     <option value="static/Виктор Цой - Звезда по имени Солнце.mp3">Виктор Цой - Звезда по имени Солнце</option>
     <option value="static/Где Фантом - Я тебя люблю.mp3">Где Фантом - Я тебя люблю</option>
@@ -71,65 +95,74 @@
     <option value="static/Stephanie Mabey - The Zombie Song.mp3">Stephanie Mabey - The Zombie Song</option>
     <option value="static/Tokio Hotel - Feel It All.mp3">Tokio Hotel - Feel It All</option>
     <option value="static/Tokio Hotel - Ich Bin Nicht Ich.mp3">Tokio Hotel - Ich Bin Nicht Ich</option>
-</select><br><br>
-        <audio id="audio" controls>
-            <source src="static/Виктор Цой - Звезда по имени Солнце.mp3" type="audio/mp3">
-        </audio><br>
-        <button id="playBtn">▶️ Play</button>
-        <button id="pauseBtn">⏸ Pause</button>
-    </div>
+</select>
+    <audio id="audio" controls>
+        <source src="static/Виктор Цой - Звезда по имени Солнце.mp3" type="audio/mp3">
+    </audio>
+    <button id="playBtn">▶️ Play</button>
+    <button id="pauseBtn">⏸ Pause</button>
+</div>
 
-    <script>
-        const socket = io();
-        const audio = document.getElementById("audio");
-        const playBtn = document.getElementById("playBtn");
-        const pauseBtn = document.getElementById("pauseBtn");
-        const songSelect = document.getElementById("songSelect");
+<script>
+    const socket = io();
+    const audio = document.getElementById("audio");
+    const playBtn = document.getElementById("playBtn");
+    const pauseBtn = document.getElementById("pauseBtn");
+    const songSelect = document.getElementById("songSelect");
 
-        // 🔊 Выбор песни девушкой
-        songSelect.onchange = () => {
-            const selected = songSelect.value;
-            socket.emit('change_song', selected);
-            audio.src = selected;
-            audio.load();
-            audio.play();
-        };
+    songSelect.onchange = () => {
+        const selected = songSelect.value;
+        socket.emit('change_song', selected);
+        audio.src = selected;
+        audio.load();
+        audio.play();
+    };
 
-        // ▶️ Play
-        playBtn.onclick = () => {
-            socket.emit('play');
-            audio.play();
-        };
+    playBtn.onclick = () => {
+        socket.emit('play');
+        audio.play();
+    };
 
-        // ⏸ Pause
-        pauseBtn.onclick = () => {
-            socket.emit('pause');
-            audio.pause();
-        };
+    pauseBtn.onclick = () => {
+        socket.emit('pause');
+        audio.pause();
+    };
 
-        // Синхронизация времени
-        audio.ontimeupdate = () => {
-            socket.emit('sync', { time: audio.currentTime });
-        };
+    audio.ontimeupdate = () => {
+        socket.emit('sync', { time: audio.currentTime });
+    };
 
-        // Получение команды от сервера
-        socket.on('play', () => audio.play());
-        socket.on('pause', () => audio.pause());
+    socket.on('play', () => audio.play());
+    socket.on('pause', () => audio.pause());
+    socket.on('sync', data => {
+        if (Math.abs(audio.currentTime - data.time) > 1) {
+            audio.currentTime = data.time;
+        }
+    });
+    socket.on('change_song', songPath => {
+        audio.src = songPath;
+        audio.load();
+        audio.play();
+        songSelect.value = songPath;
+    });
 
-        socket.on('sync', data => {
-            if (Math.abs(audio.currentTime - data.time) > 1) {
-                audio.currentTime = data.time;
-            }
+    // 💫 GSAP анимация появления и движения
+    window.onload = () => {
+        gsap.from("#playerBox", {
+            duration: 1.2,
+            y: -100,
+            opacity: 0,
+            ease: "bounce.out"
         });
 
-        // 📡 Когда другой пользователь выбирает песню
-        socket.on('change_song', songPath => {
-            audio.src = songPath;
-            audio.load();
-            audio.play();
-            songSelect.value = songPath; // Обновление выбора
+        gsap.to("#playerBox", {
+            y: "+=10",
+            repeat: -1,
+            yoyo: true,
+            ease: "power1.inOut",
+            duration: 2
         });
-    </script>
-    </script>
+    };
+</script>
 </body>
 </html>
