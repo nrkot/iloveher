@@ -40,7 +40,7 @@
             border-radius: 8px;
             border: none;
             background: #ffffff10;
-            color: white;
+            color: rgb(0, 0, 0);
         }
         audio {
             background: #ffffff10;
@@ -59,6 +59,39 @@
         button:hover {
             background: #ff33aa;
         }
+@media screen and (max-width: 480px) {
+    body {
+        padding: 10px;
+        height: auto;
+        align-items: flex-start;
+        overflow-y: auto;
+    }
+
+    .player {
+        padding: 20px 15px;
+        font-size: 15px;
+        width: 100%;
+        max-width: none;
+        box-shadow: 0 0 15px rgba(255, 0, 255, 0.1);
+        border-radius: 12px;
+    }
+
+    .player h2 {
+        font-size: 20px;
+        margin-bottom: 15px;
+    }
+
+    select, audio, button {
+        font-size: 16px;
+        padding: 12px;
+        margin: 12px 0;
+    }
+
+    button {
+        font-size: 16px;
+        padding: 12px;
+    }
+}
     </style>
 </head>
 <body>
@@ -146,7 +179,7 @@
         songSelect.value = songPath;
     });
 
-    // 💫 GSAP анимация появления и движения
+
     window.onload = () => {
         gsap.from("#playerBox", {
             duration: 1.2,
